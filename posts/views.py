@@ -6,12 +6,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from posts.models import PostModel
+from posts.permissions import IsPostAuthorOrReadOnly
 from posts.serializers import PostSerializer
 
 class PostListCreateApiView(GenericAPIView, ListModelMixin, CreateModelMixin):
     queryset = PostModel.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsPostAuthorOrReadOnly]
 
     def get(self, request, *args, **kwargs):
         data = self.list(request, *args, **kwargs)
@@ -35,15 +36,19 @@ class PostListCreateApiView(GenericAPIView, ListModelMixin, CreateModelMixin):
 class PostRetrieveUpdateDeleteApiView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin):
     queryset = PostModel.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsPostAuthorOrReadOnly]
 
     def get_object(self):
         identifier = self.kwargs.get('identifier')
 
         if identifier.isdigit():
-            return get_object_or_404(self.get_queryset(),id=int(identifier))
+            obj = get_object_or_404(self.get_queryset(),id=int(identifier))
         else:
-            return get_object_or_404(self.get_queryset(),slug=identifier)
+            obj = get_object_or_404(self.get_queryset(),slug=identifier)
+
+        self.check_object_permissions(self.request, obj)
+        
+        return obj
         
     def get(self, request, *args, **kwargs):
         data= self.retrieve(request, *args, **kwargs)
