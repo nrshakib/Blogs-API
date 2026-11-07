@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
@@ -13,6 +14,10 @@ class PostListCreateApiView(GenericAPIView, ListModelMixin, CreateModelMixin):
     queryset = PostModel.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated, IsPostAuthorOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+        return PostModel.objects.filter(Q(status = 'published') | Q(author= user))
 
     def get(self, request, *args, **kwargs):
         data = self.list(request, *args, **kwargs)
@@ -47,8 +52,13 @@ class PostRetrieveUpdateDeleteApiView(GenericAPIView, RetrieveModelMixin, Update
             obj = get_object_or_404(self.get_queryset(),slug=identifier)
 
         self.check_object_permissions(self.request, obj)
-        
+
         return obj
+
+    def get_queryset(self):
+        user = self.request.user
+        return PostModel.objects.filter(Q(status = 'published') | Q(author= user))
+    
         
     def get(self, request, *args, **kwargs):
         data= self.retrieve(request, *args, **kwargs)
