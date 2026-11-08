@@ -17,7 +17,21 @@ class PostListCreateApiView(GenericAPIView, ListModelMixin, CreateModelMixin):
 
     def get_queryset(self):
         user = self.request.user
-        return PostModel.objects.filter(Q(status = 'published') | Q(author= user))
+        query_set = PostModel.objects.filter(Q(status = 'published') | Q(author= user))
+        status_params = self.request.query_params.get('status')
+        search_params = self.request.query_params.get('search')
+        ordering_params = self.request.query_params.get('ordering')
+    
+        if status_params:
+            query_set= query_set.filter(status=status_params)
+    
+        if search_params:
+            query_set= query_set.filter(Q(title__icontains = search_params)| Q(content__icontains=search_params))
+
+        if ordering_params:
+            query_set = query_set.order_by(ordering_params)
+    
+        return query_set
 
     def get(self, request, *args, **kwargs):
         data = self.list(request, *args, **kwargs)
