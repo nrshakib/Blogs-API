@@ -1,3 +1,20 @@
-from django.shortcuts import render
+from rest_framework import status
+from rest_framework.generics import GenericAPIView
+from rest_framework.mixins import CreateModelMixin
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
-# Create your views here.
+from accounts.serializers import UserRegistrationSerializer
+
+class UserRegistrationView(GenericAPIView, CreateModelMixin):
+    serializer_class = UserRegistrationSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        response = self.create(request, *args, **kwargs)
+
+        return Response({
+            "message": "User Created Successfully",
+            "status_text": 'success',
+            "data": response.data
+        }, status=status.HTTP_201_CREATED)
