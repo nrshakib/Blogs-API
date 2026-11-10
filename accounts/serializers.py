@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenBlacklistSerializer
@@ -66,3 +67,34 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class LogoutSerializer(TokenBlacklistSerializer):
     pass
+
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate_old_password(self, value):
+        user = self.context['request'].user
+
+        if not user.check_password(value):
+            raise serializers.ValidationError("Invalid Old Password")
+
+        return value
+
+    def validate(self, attrs):
+        new_password = attrs.get('new_password')
+        confirm_password = attrs.get('confirm_password')
+
+        if new_password != confirm_password:
+            raise serializers.ValidationError("Passwords do not match")
+        
+        return attrs
+
+    def update(self, instance, validated_data):
+        new_password = validated_data.get('new_password')
+
+        if new_password:
+            instance.set_password(new_password)
+            instance.save()
+
+        return instance
