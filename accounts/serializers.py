@@ -59,3 +59,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         }
 
         return validate_data
+
+    default_error_messages = {
+        'no_active_account': 'Invalid password'
+    }
