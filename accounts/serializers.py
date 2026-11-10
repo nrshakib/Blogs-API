@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from accounts.models import User
 
@@ -14,7 +16,46 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = User(**validated_data)
         user.set_password(validated_data['password'])
-
         user.save()
 
         return user
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    # Accept either username or email through a single "user" field.
+    user = serializers.CharField()
+
+    def __init__(self, *args, **kwargs):
+        # Initialize the parent serializer and its default fields.
+        super().__init__(*args, **kwargs)
+        # Remove the default email required input field 
+        # because the client will provide username or email through the "user" field.
+        self.fields.pop('email', None)
+
+    def validate(self, attrs):
+        # Get the user input(username or email) and password from the request data(attrs).
+        user = attrs.get('user')
+
+        # Find the account using email or username.
+        if '@' in user:
+            account_user = User.objects.filter(email=user).first()
+        else:
+            account_user = User.objects.filter(username=user).first()
+
+        # Raise an authentication error if the account does not exist
+        if account_user is None:
+            raise AuthenticationFailed('Invalid username or email')
+
+        # Add the account's actual email from account_user.email
+        # because the parent serializer uses the User model's USERNAME_FIELD (email) for authentication.
+        attrs['email'] = account_user.email
+
+        # Let SimpleJWT authenticate the user and generate access and refresh tokens.
+        validate_data = super().validate(attrs)
+
+        # Add the authenticated user's information to the response data.
+        validate_data['user'] = {
+            'username': account_user.username,
+            'email': account_user.email
+        }
+
+        return validate_data
