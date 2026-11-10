@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenBlacklistSerializer
 
 from accounts.models import User
 
@@ -63,3 +63,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     default_error_messages = {
         'no_active_account': 'Invalid password'
     }
+
+class LogoutSerializer(TokenBlacklistSerializer):
+    pass

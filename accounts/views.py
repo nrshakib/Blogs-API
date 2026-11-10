@@ -3,9 +3,9 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenBlacklistView
 
-from accounts.serializers import CustomTokenObtainPairSerializer, UserRegistrationSerializer
+from accounts.serializers import CustomTokenObtainPairSerializer, LogoutSerializer, UserRegistrationSerializer
 
 class UserRegistrationView(GenericAPIView, CreateModelMixin):
     serializer_class = UserRegistrationSerializer
@@ -34,4 +34,15 @@ class CustomLoginView(TokenObtainPairView):
                 'access': response.data['access'],
                 'refresh': response.data['refresh']
             }
+        }, status=response.status_code)
+
+class LogoutView(TokenBlacklistView):
+    serializer_class = LogoutSerializer
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        return Response({
+            "message": "User Logged out Successfully",
+            "status_text": "success",
         }, status=response.status_code)
