@@ -12,5 +12,6 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view(), name='logout-view'),
 
     path('change-password/', views.ChangePasswordView.as_view(), name='change-password'),
-    path('forgot-password/', views.ForgotPasswordView.as_view(), name='forgot-password')
+    path('forgot-password/', views.ForgotPasswordView.as_view(), name='forgot-password'),
+    path('reset-password/', views.PasswordResetView.as_view(), name='reset-password'),
 ]

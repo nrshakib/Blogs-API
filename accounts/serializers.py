@@ -162,7 +162,7 @@ class PasswordResetSerializer(serializers.Serializer):
             validate_password(new_password, user)
         except ValidationError as error:
             raise serializers.ValidationError({
-                'new_password': list(error.message)
+                'new_password': list(error.messages)
             })
 
         attrs['user'] = user

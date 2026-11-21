@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenBlacklistView
 
-from accounts.serializers import CustomTokenObtainPairSerializer, ForgotPasswordSerializer, LogoutSerializer, PasswordChangeSerializer, UserRegistrationSerializer
+from accounts.serializers import CustomTokenObtainPairSerializer, ForgotPasswordSerializer, LogoutSerializer, PasswordChangeSerializer, PasswordResetSerializer, UserRegistrationSerializer
 
 class UserRegistrationView(GenericAPIView, CreateModelMixin):
     serializer_class = UserRegistrationSerializer
@@ -77,5 +77,21 @@ class ForgotPasswordView(GenericAPIView):
 
         return Response({
             "message": "Password reset link sent successfully",
+            "status_text": "success"
+        }, status=status.HTTP_200_OK)
+
+class PasswordResetView(GenericAPIView):
+    serializer_class = PasswordResetSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.instance = serializer.validated_data['user']
+        serializer.save()
+
+        return Response({
+            "message": "Password Reset Successfully",
             "status_text": "success"
         }, status=status.HTTP_200_OK)
