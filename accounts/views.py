@@ -1,11 +1,11 @@
 from rest_framework import status
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import CreateModelMixin
+from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenBlacklistView
 
-from accounts.serializers import CustomTokenObtainPairSerializer, ForgotPasswordSerializer, LogoutSerializer, PasswordChangeSerializer, PasswordResetSerializer, UserRegistrationSerializer
+from accounts.serializers import CustomTokenObtainPairSerializer, ForgotPasswordSerializer, LogoutSerializer, PasswordChangeSerializer, PasswordResetSerializer, UserProfileSerializer, UserRegistrationSerializer
 
 class UserRegistrationView(GenericAPIView, CreateModelMixin):
     serializer_class = UserRegistrationSerializer
@@ -94,4 +94,29 @@ class PasswordResetView(GenericAPIView):
         return Response({
             "message": "Password Reset Successfully",
             "status_text": "success"
+        }, status=status.HTTP_200_OK)
+
+class UserProfileView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
+    serializer_class = UserProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def get(self, request, *args, **kwargs):
+        response = self.retrieve(request, *args, **kwargs)
+
+        return Response({
+            "message": "Profile Retrieved Successfully",
+            "status_text": "success",
+            "data": response.data
+        }, status=status.HTTP_200_OK)
+
+    def patch(self, request, *args, **kwargs):
+        response = self.partial_update(request, *args, **kwargs)
+
+        return Response({
+            "message": "Profile Updated Successfully",
+            "status_text": "success",
+            "data": response.data
         }, status=status.HTTP_200_OK)
